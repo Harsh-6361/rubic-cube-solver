@@ -71,7 +71,7 @@ This project is a Rubik's Cube Solver designed for the **Design Dexterity Challe
 
 ## Demo & Screenshots
 
-> **Tip:** Replace the image links below with actual screenshots or a GIF demo from your running project.
+
 
 ![Scrambled Cube Example](./screenshots/scrambled-cube.png)
 ![Solving Animation](./screenshots/solving.gif)
