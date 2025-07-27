@@ -1,188 +1,149 @@
 # Rubik's Cube Solver
 
-A full-featured, interactive Rubik's Cube Solver app built with TypeScript, React, and 3D visualization. Solve 2x2x2, 3x3x3, and 4x4x4 cubes using multiple algorithms, visualize solutions step-by-step, and experiment with famous scramble patterns.
+## Overview
+
+This project is a Rubik's Cube Solver designed for the **Design Dexterity Challenge** hackathon. It implements an algorithm to solve a standard 3x3 Rubik's Cube (and other sizes, e.g., 2x2, 4x4) from any scrambled state, mimicking real-world solving logic through a sequence of valid moves. The project features a clean, interactive UI, supports algorithm benchmarking, and is extensible for different cube sizes.
 
 ---
 
-## ✨ Features
+## Features
 
-- **3D Interactive Visualization**: Rotate, zoom, and inspect cubes in real time.
-- **Multiple Cube Sizes**: Supports 2x2x2, 3x3x3, and 4x4x4 cubes.
-- **Algorithm Selection**: Choose between Layer-by-Layer (Beginner), CFOP (Speedcubing), and Advanced Two-Phase algorithms.
-- **Step-by-Step Solution Playback**: Watch the cube solve itself move-by-move, with animated transitions.
-- **Manual Control**: Input your own move sequences, undo moves, and apply moves directly.
-- **Pattern Scrambles**: Instantly apply famous scramble patterns (Superflip, Checkerboard, Cube in Cube, etc.).
-- **Performance Metrics**: View time taken, move count, and compare algorithm efficiency.
-- **Modern, Responsive UI**: Built with Tailwind CSS, shadcn/ui, and React Three Fiber.
+- **Accurate Cube Modeling:** Internal state representation of the cube using efficient data structures.
+- **Complete Move Engine:** Supports all standard Rubik's Cube moves (U, D, L, R, F, B, and their inverses).
+- **Solving Algorithm:** Systematic, modular, and scalable approach capable of solving any scramble.
+- **Algorithm Comparison:** Benchmark multiple solving strategies for efficiency and moves count.
+- **Visual Simulation:** Interactive web UI to scramble, solve, and visualize the cube state and moves.
+- **Scalability:** Supports 2x2, 3x3, and 4x4 cubes with ease.
+- **Bonus:** Clean code, modular design, and potential for easy extension (e.g., user-defined patterns).
 
 ---
 
-## 🚀 Getting Started
+## Table of Contents
+
+- [Project Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [How Cube Solving Works](#how-cube-solving-works)
+- [Demo & Screenshots](#demo--screenshots)
+- [How to Run](#how-to-run)
+- [Usage](#usage)
+- [Performance & Benchmarking](#performance--benchmarking)
+- [Contributing](#contributing)
+- [Credits](#credits)
+- [License](#license)
+
+---
+
+## Architecture
+
+- **Frontend:** React (TypeScript), modular UI components.
+- **Logic:** Cube state and algorithms implemented in pure TypeScript modules.
+- **Entry Points:**  
+  - `components/cube-solver.tsx` — Main UI logic for scrambling, solving, and visualizing.
+  - `lib/cube-state.ts` — Core cube state, move application, and random scrambling.
+  - `lib/algorithms.ts` — Solving algorithms, benchmarking logic, and algorithm metadata.
+
+---
+
+## How Cube Solving Works
+
+### Problem Breakdown
+
+- **State Modeling:** The cube is represented as a set of faces, each face as an array of stickers.
+- **Move Engine:** Implements all standard moves (U, D, L, R, F, B, and their inverses/rotations), modifying the cube state accordingly.
+- **Solving Algorithm:**  
+  1. Analyze current cube state vs. solved state.
+  2. Generate a sequence of valid moves to reach the solved state.
+  3. Apply moves and validate with each step.
+  4. Benchmark algorithms for time and move count.
+
+### Data Structures
+
+- **CubeState:** Object storing each face's stickers and cube size.
+- **Move Sequences:** Arrays of strings representing moves (e.g., `["F", "U'", "R2"]`).
+
+### State Prediction & Validation
+
+- After each move, the new state is predicted and checked for correctness.
+- Algorithms simulate and verify solution before presenting to the user.
+
+---
+
+## Demo & Screenshots
+
+> **Tip:** Replace the image links below with actual screenshots or a GIF demo from your running project.
+
+![Scrambled Cube Example](./screenshots/scrambled-cube.png)
+![Solving Animation](./screenshots/solving.gif)
+![Algorithm Comparison Chart](./screenshots/algorithm-comparison.png)
+
+---
+
+## How to Run
 
 ### Prerequisites
 
-- Node.js (v18+ recommended)
-- pnpm (or npm/yarn)
-- Modern browser (for 3D visualization)
+- Node.js (>= 16.x)
+- npm or yarn
 
-### Installation
+### Setup
 
 ```bash
 git clone https://github.com/Harsh-6361/rubic-cube-solver.git
 cd rubic-cube-solver
-pnpm install
+npm install    # or yarn
 ```
 
-### Running the App
+### Development
 
 ```bash
-pnpm dev
+npm run dev    # or yarn dev
 ```
+- Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
+### Production Build
 
----
-
-## 🧩 How It Works
-
-### Cube Modeling
-
-- The cube is modeled as a `CubeState` with six faces, each a flat array of colors.
-- Moves (F, B, R, L, U, D and their inverses/doubles) rotate faces and update stickers per standard Rubik's Cube logic.
-- State transitions use pure functions for predictability and animation.
-
-### Solving Algorithms
-
-Implemented in `lib/algorithms.ts`:
-
-1. **Layer-by-Layer (Beginner)**
-   - Solves the cube layer by layer.
-   - Easy to understand, but not optimal for speed.
-
-2. **CFOP (Speedcubing)**
-   - Cross, F2L, OLL, PLL.
-   - Fast and efficient, but requires memorization.
-
-3. **Advanced Two-Phase (Kociemba-inspired)**
-   - Computer-optimized, minimal moves.
-   - Uses theoretical group reduction for efficient solutions.
-
-Each algorithm exposes:
-- Metadata (time/space complexity, description)
-- A `solve` function returning the move sequence and solved state.
-
-### Move Engine
-
-- All moves are simulated as real cube moves, updating both state and visualization.
-- Manual and automated moves use the same engine.
-
-### Visualization
-
-- 3D rendering via React Three Fiber.
-- Animations for move application and solution playback.
-- Visual highlight of current move and step.
-
----
-
-## 🕹 Usage Guide
-
-1. **Select Cube Size**: 2x2, 3x3, or 4x4.
-2. **Scramble the Cube**:
-   - Use "Random" for a random sequence.
-   - Apply a famous pattern from the "Scramble Patterns" panel.
-3. **Choose Algorithm**: Pick your preferred solving method.
-4. **Solve the Cube**:
-   - Click "Solve" to watch the solution play out.
-   - Use animation controls for step-by-step, pause, resume, or skip.
-5. **Manual Moves**:
-   - Enter move sequences to scramble or experiment.
-   - Undo steps as needed.
-6. **View Solution**:
-   - See move count, time taken, and algorithm efficiency.
-   - Inspect each move in the solution.
-
----
-
-## 📂 Project Structure
-
-```
-.
-├── app/                # Next.js app directory & entrypoint
-├── components/         # UI components (3D cube, controls, dialogs, visualizer)
-├── lib/                # Core logic: cube state, move engine, algorithms, patterns
-├── public/             # Static assets
-├── styles/             # Tailwind CSS and custom styles
-├── hooks/              # React hooks (UI helpers)
-├── package.json        # Project dependencies and scripts
-└── README.md           # You're here!
+```bash
+npm run build
+npm start
 ```
 
 ---
 
-## ⚙️ Extending / Developer Guide
+## Usage
 
-- **Add New Algorithms**:  
-  Implement a new entry in `lib/algorithms.ts` with metadata and a `solve` function.
-- **Add Patterns**:  
-  Add to `lib/scramble-patterns.ts` with a name, description, and move list.
-- **Support Larger Cubes**:  
-  Cube state and move logic are dimension-agnostic, but algorithm logic may need extension.
+1. **Choose Cube Size:** Select 2x2, 3x3, or 4x4.
+2. **Scramble the Cube:** Use random or patterned scrambles.
+3. **Solve:** Click "Solve" to auto-solve the cube and watch the moves animate.
+4. **Algorithm Comparison:** Use the comparison tab to benchmark different algorithms for moves and time.
 
 ---
 
-## 📊 Algorithm Comparison
+## Performance & Benchmarking
 
-The app includes a comparison tool (`components/algorithm-comparison.tsx`) to benchmark different algorithms on the same scramble, reporting:
-- Time taken
-- Number of moves
-- Efficiency score
-
----
-
-## 🔬 Core Files Explained
-
-- **lib/cube-state.ts**:  
-  Models the cube, provides move logic, scramble/solved generation, and checks for solved state.
-
-- **lib/algorithms.ts**:  
-  Implements solving algorithms, including metadata, step lists, and move generation logic.
-
-- **components/rubiks-cube.tsx**:  
-  3D rendering and animation of the cube.
-
-- **components/cube-solver.tsx**:  
-  Main UI logic: user input, solution playback, and cube state management.
-
-- **lib/scramble-patterns.ts**:  
-  Famous scramble and pattern move lists.
-
-See in-code documentation for further detail.
+- The app benchmarks algorithms for:
+  - **Solving time (ms)**
+  - **Number of moves**
+  - **Efficiency score**
+- Visual charts are provided in the UI for comparison.
 
 ---
 
-## 📚 References & Credits
+## Contributing
 
-- [Kociemba's Two-Phase Algorithm](https://kociemba.org/)
-- [CFOP Method for Speedcubing](https://ruwix.com/the-rubiks-cube/advanced-cfop-fridrich/)
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- All algorithms and move logic adapted and simplified for educational use.
+Want to improve this project?
+- Fork the repo and submit a pull request.
+- Suggestions and bug reports are welcome via GitHub Issues.
 
 ---
 
-## 🧑‍💻 Author
+## Credits
 
-**Harsh Vardhan**  
-[GitHub](https://github.com/Harsh-6361)
-
----
-
-## 📄 License
-
-[MIT](LICENSE)
+- Developed by [Harsh-6361](https://github.com/Harsh-6361) for the Design Dexterity Challenge.
+- Inspired by classic Rubik's Cube solving algorithms and open-source UI component libraries.
 
 ---
 
-Enjoy exploring, learning, and solving Rubik's Cubes visually and interactively!
+## License
 
-
+This project is licensed under the MIT License.
