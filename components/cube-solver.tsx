@@ -1,5 +1,5 @@
 "use client"
-import { useState, Suspense } from "react"
+import { useState, Suspense, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,7 +15,7 @@ import { algorithms } from "@/lib/algorithms"
 import { scramblePatterns, applyScramblePattern } from "@/lib/scramble-patterns"
 import { type CubeState, generateScrambledCube, generateSolvedCube, isSolved, applyMove } from "@/lib/cube-state"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Play, Pause, SkipForward, RotateCcw, Shuffle, Sparkles } from "lucide-react"
+import { Play, Pause, SkipForward, RotateCcw, Shuffle, Sparkles, Timer, Zap } from "lucide-react"
 
 export function CubeSolver() {
   const [cubeSize, setCubeSize] = useState<2 | 3 | 4>(3)
@@ -29,22 +29,21 @@ export function CubeSolver() {
   const [animatingMove, setAnimatingMove] = useState<string | null>(null)
   const [solveTime, setSolveTime] = useState<number | null>(null)
   const [moveCount, setMoveCount] = useState<number | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [statusMessage, setStatusMessage] = useState("")
+  const [statusMessage, setStatusMessage] = useState("Cube is scrambled and ready to solve!")
   const [solutionMoves, setSolutionMoves] = useState<string[]>([])
   const [currentMoveIndex, setCurrentMoveIndex] = useState(-1)
   const [manualMove, setManualMove] = useState("")
   const [moveHistory, setMoveHistory] = useState<string[]>([])
 
   // Visualization controls
-  const [enableAnimations, setEnableAnimations] = useState(false)
+  const [enableAnimations, setEnableAnimations] = useState(true)
   const [animationSpeed, setAnimationSpeed] = useState([1])
   const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState("")
   const [algorithmProgress, setAlgorithmProgress] = useState(0)
   const [isStepByStep, setIsStepByStep] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
 
-  const handleCubeSizeChange = (size: string) => {
+  const handleCubeSizeChange = useCallback((size: string) => {
     const newSize = Number.parseInt(size) as 2 | 3 | 4
     setCubeSize(newSize)
     const newCube = generateScrambledCube(newSize)
@@ -58,9 +57,9 @@ export function CubeSolver() {
     setCurrentAlgorithmStep("")
     setAlgorithmProgress(0)
     setStatusMessage(`Generated new ${newSize}x${newSize}x${newSize} cube`)
-  }
+  }, [])
 
-  const handleRandomScramble = async () => {
+  const handleRandomScramble = useCallback(async () => {
     if (isAnimating) return
 
     setIsScrambling(true)
@@ -80,9 +79,9 @@ export function CubeSolver() {
     setMoveCount(null)
     setIsScrambling(false)
     setStatusMessage("Cube scrambled randomly! Ready to solve.")
-  }
+  }, [cubeSize, isAnimating])
 
-  const handlePatternScramble = async () => {
+  const handlePatternScramble = useCallback(async () => {
     if (isAnimating) return
 
     setIsScrambling(true)
@@ -103,26 +102,34 @@ export function CubeSolver() {
     setMoveCount(null)
     setIsScrambling(false)
     setStatusMessage(`Applied ${pattern.name} pattern! Moves: ${pattern.moves.join(" ")}`)
-  }
+  }, [selectedPattern, cubeSize, isAnimating])
 
-  const animateMove = async (move: string, newState: CubeState) => {
-    if (!enableAnimations) {
+  const animateMove = useCallback(
+    async (move: string, newState: CubeState) => {
+      if (!enableAnimations) {
+        setCubeState(newState)
+        return
+      }
+
+      setIsAnimating(true)
+      setAnimatingMove(move)
+
+      const duration = 600 / animationSpeed[0]
+      await new Promise((resolve) => setTimeout(resolve, duration))
+
       setCubeState(newState)
-      return
-    }
+      setAnimatingMove(null)
+      setIsAnimating(false)
+    },
+    [enableAnimations, animationSpeed],
+  )
 
-    setIsAnimating(true)
-    setAnimatingMove(move)
-
-    const duration = 600 / animationSpeed[0]
-    await new Promise((resolve) => setTimeout(resolve, duration))
-
-    setCubeState(newState)
-    setAnimatingMove(null)
+  const handleAnimationComplete = useCallback(() => {
     setIsAnimating(false)
-  }
+    setAnimatingMove(null)
+  }, [])
 
-  const handleSolve = async () => {
+  const handleSolve = useCallback(async () => {
     if (!isScrambled || isAnimating) {
       setStatusMessage("Cube is already solved!")
       return
@@ -197,13 +204,13 @@ export function CubeSolver() {
     } finally {
       setIsSolving(false)
     }
-  }
+  }, [isScrambled, isAnimating, selectedAlgorithm, cubeState, cubeSize, isPaused, isStepByStep, animateMove])
 
-  const handlePauseResume = () => {
+  const handlePauseResume = useCallback(() => {
     setIsPaused(!isPaused)
-  }
+  }, [isPaused])
 
-  const handleSkipToEnd = async () => {
+  const handleSkipToEnd = useCallback(async () => {
     if (!isSolving) return
 
     setIsPaused(false)
@@ -217,9 +224,9 @@ export function CubeSolver() {
     setCurrentAlgorithmStep("Cube solved successfully!")
     setIsScrambled(false)
     setIsSolving(false)
-  }
+  }, [isSolving, cubeSize, solutionMoves.length])
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (isAnimating) return
 
     const solvedCube = generateSolvedCube(cubeSize)
@@ -233,9 +240,9 @@ export function CubeSolver() {
     setCurrentAlgorithmStep("")
     setAlgorithmProgress(0)
     setStatusMessage("Cube reset to solved state")
-  }
+  }, [isAnimating, cubeSize])
 
-  const handleManualMove = async () => {
+  const handleManualMove = useCallback(async () => {
     if (!manualMove.trim() || isAnimating) return
 
     const moves = manualMove.trim().split(/\s+/)
@@ -255,19 +262,22 @@ export function CubeSolver() {
     setManualMove("")
     setIsScrambled(!isSolved(currentState))
     setStatusMessage(`Applied moves: ${moves.join(" ")}`)
-  }
+  }, [manualMove, isAnimating, cubeState, moveHistory, animateMove])
 
-  const handleQuickMove = async (move: string) => {
-    if (isAnimating) return
+  const handleQuickMove = useCallback(
+    async (move: string) => {
+      if (isAnimating) return
 
-    const newState = applyMove(cubeState, move)
-    await animateMove(move, newState)
-    setMoveHistory([...moveHistory, move])
-    setIsScrambled(!isSolved(newState))
-    setStatusMessage(`Applied move: ${move}`)
-  }
+      const newState = applyMove(cubeState, move)
+      await animateMove(move, newState)
+      setMoveHistory([...moveHistory, move])
+      setIsScrambled(!isSolved(newState))
+      setStatusMessage(`Applied move: ${move}`)
+    },
+    [isAnimating, cubeState, moveHistory, animateMove],
+  )
 
-  const handleUndoMove = async () => {
+  const handleUndoMove = useCallback(async () => {
     if (moveHistory.length === 0 || isAnimating) return
 
     const lastMove = moveHistory[moveHistory.length - 1]
@@ -278,7 +288,7 @@ export function CubeSolver() {
     setMoveHistory(moveHistory.slice(0, -1))
     setIsScrambled(!isSolved(newState))
     setStatusMessage(`Undid move: ${lastMove}`)
-  }
+  }, [moveHistory, isAnimating, cubeState, animateMove])
 
   const isValidMove = (move: string): boolean => {
     const validMoves = [
@@ -318,8 +328,10 @@ export function CubeSolver() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-red-500">Rubik's Cube Solver by HARSH VARDHAN</h1>
-          <p className="text-lg text-gray-600">Multi-algorithm solver with pattern scrambles</p>
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-red-500 to-blue-600 bg-clip-text text-transparent">
+            🧩 Rubik's Cube Solver
+          </h1>
+          <p className="text-lg text-gray-600">Advanced 3D solver with multiple algorithms and patterns</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -327,33 +339,37 @@ export function CubeSolver() {
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>3D Rubik's Cube</CardTitle>
-                <CardDescription>
-                  Interactive {cubeSize}x{cubeSize}x{cubeSize} Rubik's Cube
-                  {cubeIsSolved && (
-                    <Badge className="ml-2" variant="default">
-                      SOLVED!
-                    </Badge>
-                  )}
-                  {isAnimating && (
-                    <Badge className="ml-2" variant="secondary">
-                      Animating...
-                    </Badge>
-                  )}
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Timer className="h-5 w-5" />
+                    3D Rubik's Cube ({cubeSize}x{cubeSize}x{cubeSize})
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    {cubeIsSolved && (
+                      <Badge className="bg-green-500" variant="default">
+                        ✓ SOLVED!
+                      </Badge>
+                    )}
+                    {isAnimating && <Badge variant="secondary">🔄 Animating {animatingMove}</Badge>}
+                    {isSolving && <Badge variant="outline">🧠 Solving...</Badge>}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Suspense
                   fallback={
-                    <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-                      Loading 3D Cube...
+                    <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading 3D Cube...</p>
+                      </div>
                     </div>
                   }
                 >
                   <RubiksCube
                     cubeState={cubeState}
                     isAnimating={isAnimating}
-                    onAnimationComplete={() => {}}
+                    onAnimationComplete={handleAnimationComplete}
                     currentMove={animatingMove}
                     animationSpeed={animationSpeed[0]}
                   />
@@ -405,7 +421,13 @@ export function CubeSolver() {
             </Card>
 
             {/* Algorithm Visualizer */}
-            <AlgorithmVisualizer />
+            <AlgorithmVisualizer
+              currentStep={currentAlgorithmStep}
+              progress={algorithmProgress}
+              currentMove={animatingMove}
+              totalMoves={solutionMoves.length}
+              isSolving={isSolving}
+            />
           </div>
 
           {/* Controls Panel */}
@@ -422,9 +444,9 @@ export function CubeSolver() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="2">2x2x2</SelectItem>
-                      <SelectItem value="3">3x3x3</SelectItem>
-                      <SelectItem value="4">4x4x4</SelectItem>
+                      <SelectItem value="2">2x2x2 (Pocket Cube)</SelectItem>
+                      <SelectItem value="3">3x3x3 (Classic)</SelectItem>
+                      <SelectItem value="4">4x4x4 (Revenge)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -455,7 +477,12 @@ export function CubeSolver() {
                     <Shuffle className="h-4 w-4 mr-2" />
                     {isScrambling ? "..." : "Random"}
                   </Button>
-                  <Button onClick={handleSolve} disabled={cubeIsSolved || isSolving || isScrambling || isAnimating}>
+                  <Button
+                    onClick={handleSolve}
+                    disabled={cubeIsSolved || isSolving || isScrambling || isAnimating}
+                    className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
                     {isSolving ? "Solving..." : "Solve"}
                   </Button>
                 </div>
@@ -466,6 +493,7 @@ export function CubeSolver() {
                   disabled={isSolving || isScrambling || isAnimating}
                   className="w-full"
                 >
+                  <RotateCcw className="h-4 w-4 mr-2" />
                   Reset to Solved
                 </Button>
               </CardContent>
@@ -627,19 +655,19 @@ export function CubeSolver() {
                   {solveTime !== null && (
                     <div className="flex justify-between">
                       <span>Solve Time:</span>
-                      <Badge>{solveTime.toFixed(2)}ms</Badge>
+                      <Badge className="bg-green-500">{solveTime.toFixed(2)}ms</Badge>
                     </div>
                   )}
                   {moveCount !== null && (
                     <div className="flex justify-between">
                       <span>Moves:</span>
-                      <Badge>{moveCount}</Badge>
+                      <Badge className="bg-blue-500">{moveCount}</Badge>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Status:</span>
                     <Badge variant={cubeIsSolved ? "default" : "secondary"}>
-                      {cubeIsSolved ? "Solved" : "Scrambled"}
+                      {cubeIsSolved ? "✓ Solved" : "⚡ Scrambled"}
                     </Badge>
                   </div>
                 </CardContent>
