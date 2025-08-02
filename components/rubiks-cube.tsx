@@ -1,164 +1,141 @@
 "use client"
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
-import * as THREE from "three"
+import type * as THREE from "three"
 import type { CubeState, Move } from "@/lib/cube-state"
 
-interface CubeProps {
-  cubeState: CubeState
-  isAnimating: boolean
-  onAnimationComplete: () => void
-  currentMove?: Move | null
-  animationSpeed: number
-}
-
-interface CubieProps {
+interface CubePieceProps {
   position: [number, number, number]
-  colors: (string | null)[]
-  isAnimating: boolean
-  targetRotation?: THREE.Euler
-  animationSpeed: number
+  colors: string[]
+  size?: number
 }
 
-function Cubie({ position, colors, isAnimating, targetRotation, animationSpeed }: CubieProps) {
-  const meshRef = useRef<THREE.Group>(null)
-  const [currentRotation, setCurrentRotation] = useState(new THREE.Euler(0, 0, 0))
+function CubePiece({ position, colors, size = 0.95 }: CubePieceProps) {
+  const meshRef = useRef<THREE.Mesh>(null)
 
-  useFrame(() => {
-    if (meshRef.current && isAnimating && targetRotation) {
-      // Smooth rotation animation
-      const speed = animationSpeed * 0.1
-      meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, targetRotation.x, speed)
-      meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, targetRotation.y, speed)
-      meshRef.current.rotation.z = THREE.MathUtils.lerp(meshRef.current.rotation.z, targetRotation.z, speed)
-    }
-  })
-
-  const faceColors = [
-    colors[0] || "#000000", // right
-    colors[1] || "#000000", // left
-    colors[2] || "#000000", // top
-    colors[3] || "#000000", // bottom
-    colors[4] || "#000000", // front
-    colors[5] || "#000000", // back
-  ]
+  const colorMap: { [key: string]: string } = {
+    white: "#ffffff",
+    yellow: "#ffff00",
+    red: "#ff0000",
+    orange: "#ff8000",
+    green: "#00ff00",
+    blue: "#0000ff",
+    black: "#000000",
+  }
 
   return (
-    <group ref={meshRef} position={position}>
-      <mesh>
-        <boxGeometry args={[0.95, 0.95, 0.95]} />
-        {faceColors.map((color, index) => (
-          <meshStandardMaterial key={index} attach={`material-${index}`} color={color} />
-        ))}
-      </mesh>
-      {/* Black edges */}
-      <lineSegments>
-        <edgesGeometry args={[new THREE.BoxGeometry(0.95, 0.95, 0.95)]} />
-        <lineBasicMaterial color="#000000" linewidth={2} />
-      </lineSegments>
-    </group>
+    <mesh ref={meshRef} position={position}>
+      <boxGeometry args={[size, size, size]} />
+      {colors.map((color, index) => (
+        <meshStandardMaterial key={index} attach={`material-${index}`} color={colorMap[color] || "#cccccc"} />
+      ))}
+    </mesh>
   )
 }
 
-function CubeScene({ cubeState, isAnimating, onAnimationComplete, currentMove, animationSpeed }: CubeProps) {
+interface RubiksCubeProps {
+  cubeState: CubeState
+  isAnimating?: boolean
+  onAnimationComplete?: () => void
+  currentMove?: Move | null
+  animationSpeed?: number
+}
+
+export function RubiksCube({
+  cubeState,
+  isAnimating = false,
+  onAnimationComplete,
+  currentMove,
+  animationSpeed = 1,
+}: RubiksCubeProps) {
   const groupRef = useRef<THREE.Group>(null)
 
+  useFrame(() => {
+    if (groupRef.current && isAnimating) {
+      groupRef.current.rotation.y += 0.01 * animationSpeed
+    }
+  })
+
   useEffect(() => {
-    if (isAnimating && currentMove) {
-      // Animation logic here
+    if (isAnimating && onAnimationComplete) {
       const timer = setTimeout(() => {
         onAnimationComplete()
       }, 1000 / animationSpeed)
       return () => clearTimeout(timer)
     }
-  }, [isAnimating, currentMove, animationSpeed, onAnimationComplete])
+  }, [isAnimating, onAnimationComplete, animationSpeed])
 
-  const renderCubies = () => {
-    const cubies = []
+  const renderCube = () => {
+    const pieces = []
+    const size = cubeState.size || 3
 
-    for (let x = -1; x <= 1; x++) {
-      for (let y = -1; y <= 1; y++) {
-        for (let z = -1; z <= 1; z++) {
-          // Skip the center cubie (invisible)
-          if (x === 0 && y === 0 && z === 0) continue
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        for (let z = 0; z < size; z++) {
+          const position: [number, number, number] = [
+            (x - (size - 1) / 2) * 1.1,
+            (y - (size - 1) / 2) * 1.1,
+            (z - (size - 1) / 2) * 1.1,
+          ]
 
-          const position: [number, number, number] = [x, y, z]
-          const colors = getCubieColors(x, y, z, cubeState)
+          // Determine colors for each face of this piece
+          const colors = ["white", "white", "white", "white", "white", "white"]
 
-          cubies.push(
-            <Cubie
-              key={`${x}-${y}-${z}`}
-              position={position}
-              colors={colors}
-              isAnimating={isAnimating}
-              animationSpeed={animationSpeed}
-            />,
-          )
+          // Front face (z = size-1)
+          if (z === size - 1) {
+            const faceIndex = y * size + x
+            colors[4] = cubeState.faces.front[faceIndex] || "white"
+          }
+
+          // Back face (z = 0)
+          if (z === 0) {
+            const faceIndex = y * size + (size - 1 - x)
+            colors[5] = cubeState.faces.back[faceIndex] || "yellow"
+          }
+
+          // Right face (x = size-1)
+          if (x === size - 1) {
+            const faceIndex = y * size + z
+            colors[0] = cubeState.faces.right[faceIndex] || "red"
+          }
+
+          // Left face (x = 0)
+          if (x === 0) {
+            const faceIndex = y * size + (size - 1 - z)
+            colors[1] = cubeState.faces.left[faceIndex] || "orange"
+          }
+
+          // Top face (y = size-1)
+          if (y === size - 1) {
+            const faceIndex = z * size + x
+            colors[2] = cubeState.faces.top[faceIndex] || "green"
+          }
+
+          // Bottom face (y = 0)
+          if (y === 0) {
+            const faceIndex = (size - 1 - z) * size + x
+            colors[3] = cubeState.faces.bottom[faceIndex] || "blue"
+          }
+
+          pieces.push(<CubePiece key={`${x}-${y}-${z}`} position={position} colors={colors} />)
         }
       }
     }
 
-    return cubies
+    return pieces
   }
 
-  return <group ref={groupRef}>{renderCubies()}</group>
-}
-
-function getCubieColors(x: number, y: number, z: number, cubeState: CubeState): (string | null)[] {
-  const colors: (string | null)[] = [null, null, null, null, null, null]
-
-  // Map cube state to colors based on position
-  // This is a simplified mapping - you may need to adjust based on your cube state structure
-
-  // Right face (x = 1)
-  if (x === 1) colors[0] = getColorFromState(cubeState.right, y + 1, z + 1)
-  // Left face (x = -1)
-  if (x === -1) colors[1] = getColorFromState(cubeState.left, y + 1, z + 1)
-  // Top face (y = 1)
-  if (y === 1) colors[2] = getColorFromState(cubeState.up, x + 1, z + 1)
-  // Bottom face (y = -1)
-  if (y === -1) colors[3] = getColorFromState(cubeState.down, x + 1, z + 1)
-  // Front face (z = 1)
-  if (z === 1) colors[4] = getColorFromState(cubeState.front, x + 1, y + 1)
-  // Back face (z = -1)
-  if (z === -1) colors[5] = getColorFromState(cubeState.back, x + 1, y + 1)
-
-  return colors
-}
-
-function getColorFromState(face: string[][], row: number, col: number): string {
-  if (row < 0 || row >= 3 || col < 0 || col >= 3) return "#000000"
-
-  const colorMap: { [key: string]: string } = {
-    W: "#ffffff", // White
-    R: "#ff0000", // Red
-    B: "#0000ff", // Blue
-    O: "#ff8800", // Orange
-    G: "#00ff00", // Green
-    Y: "#ffff00", // Yellow
-  }
-
-  return colorMap[face[row][col]] || "#000000"
-}
-
-export function RubiksCube({ cubeState, isAnimating, onAnimationComplete, currentMove, animationSpeed }: CubeProps) {
   return (
-    <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
-      <Canvas camera={{ position: [4, 4, 4], fov: 50 }} gl={{ antialias: true, alpha: true }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+    <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg">
+      <Canvas camera={{ position: [8, 8, 8], fov: 50 }}>
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[10, 10, 5]} intensity={0.8} />
+        <pointLight position={[-10, -10, -5]} intensity={0.3} />
 
-        <CubeScene
-          cubeState={cubeState}
-          isAnimating={isAnimating}
-          onAnimationComplete={onAnimationComplete}
-          currentMove={currentMove}
-          animationSpeed={animationSpeed}
-        />
+        <group ref={groupRef}>{renderCube()}</group>
 
-        <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} minDistance={3} maxDistance={10} />
+        <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} maxDistance={20} minDistance={5} />
       </Canvas>
     </div>
   )

@@ -1,13 +1,13 @@
 "use client"
 
+import { CardDescription } from "@/components/ui/card"
+
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { algorithms } from "@/lib/algorithms"
-import { generateScrambledCube } from "@/lib/cube-state"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts"
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts"
 
 interface ComparisonResult {
   algorithm: string
@@ -16,6 +16,33 @@ interface ComparisonResult {
   name: string
   efficiency: number
 }
+
+const algorithms = [
+  {
+    name: "Two-Phase Algorithm",
+    speed: 95,
+    moves: 18,
+    difficulty: "Expert",
+    type: "Computer",
+    description: "Optimal computer solving method",
+  },
+  {
+    name: "CFOP Method",
+    speed: 85,
+    moves: 35,
+    difficulty: "Advanced",
+    type: "Speedcubing",
+    description: "Most popular speedcubing method",
+  },
+  {
+    name: "Layer-by-Layer",
+    speed: 45,
+    moves: 65,
+    difficulty: "Beginner",
+    type: "Educational",
+    description: "Best method for learning",
+  },
+]
 
 export function AlgorithmComparison() {
   const [cubeSize, setCubeSize] = useState<2 | 3 | 4>(3)
@@ -287,6 +314,55 @@ export function AlgorithmComparison() {
           </Card>
         </>
       )}
+
+      {/* Static Algorithm Comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Algorithm Comparison</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {algorithms.map((algo, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">{algo.name}</h4>
+                  <Badge
+                    variant={
+                      algo.difficulty === "Expert"
+                        ? "default"
+                        : algo.difficulty === "Advanced"
+                          ? "secondary"
+                          : "outline"
+                    }
+                  >
+                    {algo.difficulty}
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">{algo.description}</p>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Speed Efficiency</span>
+                    <span>{algo.speed}%</span>
+                  </div>
+                  <Progress value={algo.speed} className="h-2" />
+
+                  <div className="flex justify-between text-sm mt-2">
+                    <span>Average Moves</span>
+                    <span>{algo.moves}</span>
+                  </div>
+                  <Progress value={100 - (algo.moves / 80) * 100} className="h-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
+}
+
+function generateScrambledCube(size: number) {
+  // Placeholder function for generating scrambled cube
+  return {}
 }
