@@ -88,25 +88,25 @@ This project is a Rubik's Cube Solver designed for the **Design Dexterity Challe
 
 ### Setup
 
-```bash
+\`\`\`bash
 git clone https://github.com/Harsh-6361/rubic-cube-solver.git
 cd rubic-cube-solver
 npm install    # or yarn
-```
+\`\`\`
 
 ### Development
 
-```bash
+\`\`\`bash
 npm run dev    # or yarn dev
-```
+\`\`\`
 - Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Production Build
 
-```bash
+\`\`\`bash
 npm run build
 npm start
-```
+\`\`\`
 
 ---
 
