@@ -1,225 +1,113 @@
-import type { CubeState } from "./cube-state"
-import { applyMove, generateSolvedCube } from "./cube-state"
-
 export interface ScramblePattern {
   name: string
+  moves: string
+  difficulty: "Easy" | "Medium" | "Hard" | "Expert"
   description: string
-  moves: string[]
-  difficulty: string
-  category: string
 }
 
-export const scramblePatterns: Record<string, ScramblePattern> = {
-  superflip: {
-    name: "Superflip",
-    description: "The most famous cube pattern - all edges are flipped but in correct positions",
-    moves: [
-      "R",
-      "U",
-      "R'",
-      "F",
-      "R",
-      "F'",
-      "U2",
-      "R'",
-      "U'",
-      "R",
-      "U",
-      "R'",
-      "F",
-      "R2",
-      "U'",
-      "R'",
-      "U'",
-      "R",
-      "U",
-      "R'",
-      "F'",
-    ],
-    difficulty: "Expert",
-    category: "Classic",
-  },
-
-  checkerboard: {
-    name: "Checkerboard",
-    description: "Creates a checkerboard pattern on all faces",
-    moves: ["M2", "E2", "S2"],
-    difficulty: "Easy",
-    category: "Pattern",
-  },
-
-  cross: {
-    name: "Cross Pattern",
-    description: "Creates a cross pattern on each face",
-    moves: ["F", "B", "R", "L", "U", "D"],
-    difficulty: "Easy",
-    category: "Pattern",
-  },
-
-  cube_in_cube: {
-    name: "Cube in Cube",
-    description: "Creates smaller cubes within each face",
-    moves: ["F", "L", "F", "U'", "R", "U", "F2", "L2", "U'", "L'", "B", "D'", "B'", "L2", "U"],
-    difficulty: "Intermediate",
-    category: "Pattern",
-  },
-
-  flower: {
-    name: "Flower Pattern",
-    description: "Creates flower-like patterns on opposite faces",
-    moves: ["R", "U", "R'", "F", "R", "F'", "U", "R", "U2", "R'", "U2", "R"],
-    difficulty: "Intermediate",
-    category: "Pattern",
-  },
-
-  spiral: {
-    name: "Spiral",
-    description: "Creates spiral patterns around the cube",
-    moves: ["R", "U", "R'", "U", "R", "U2", "R'", "L'", "U'", "L", "U'", "L'", "U2", "L"],
-    difficulty: "Intermediate",
-    category: "Pattern",
-  },
-
-  dots: {
-    name: "Six Dots",
-    description: "Creates dot patterns on each face center",
-    moves: ["U", "D'", "R", "L'", "F", "B'", "U", "D'"],
-    difficulty: "Easy",
-    category: "Pattern",
-  },
-
-  stripes: {
-    name: "Stripes",
-    description: "Creates striped patterns across faces",
-    moves: ["F", "U", "F", "R", "L'", "F", "D'", "F", "U", "F", "L", "R'", "F"],
-    difficulty: "Intermediate",
-    category: "Pattern",
-  },
-
-  tetris: {
-    name: "Tetris",
-    description: "Creates Tetris-like block patterns",
-    moves: ["L", "R", "F", "B", "U", "D", "L", "R"],
-    difficulty: "Easy",
-    category: "Fun",
-  },
-
-  anaconda: {
-    name: "Anaconda",
-    description: "Creates snake-like patterns wrapping around the cube",
-    moves: ["L", "U", "B'", "U'", "R", "L'", "B", "R'", "F", "B'", "D", "R", "D'", "F'"],
-    difficulty: "Advanced",
-    category: "Complex",
-  },
-
-  python: {
-    name: "Python",
-    description: "Another snake pattern with different characteristics",
-    moves: ["R", "U'", "R'", "U'", "F", "R", "F'", "U", "R", "U2", "R'", "U2", "R"],
-    difficulty: "Advanced",
-    category: "Complex",
-  },
-
-  gift_box: {
-    name: "Gift Box",
-    description: "Creates a gift box ribbon pattern",
-    moves: ["F", "R", "U", "R'", "U'", "R", "U", "R'", "U'", "F'"],
-    difficulty: "Intermediate",
-    category: "Fun",
-  },
-
-  easy_scramble: {
-    name: "Easy Scramble",
-    description: "Simple scramble for beginners",
-    moves: ["R", "U", "R'", "U'", "F", "U", "F'"],
-    difficulty: "Beginner",
-    category: "Practice",
-  },
-
-  medium_scramble: {
-    name: "Medium Scramble",
-    description: "Moderate scramble for intermediate solvers",
-    moves: ["R", "U2", "R'", "D", "R", "U'", "R'", "D'", "R2", "U", "R'", "U'", "R", "U'", "R'"],
-    difficulty: "Intermediate",
-    category: "Practice",
-  },
-
-  hard_scramble: {
-    name: "Hard Scramble",
-    description: "Complex scramble for advanced solvers",
-    moves: [
-      "R",
-      "U",
-      "R'",
-      "F",
-      "R",
-      "F'",
-      "U2",
-      "R'",
-      "U'",
-      "R",
-      "U",
-      "R'",
-      "F",
-      "R",
-      "F'",
-      "U",
-      "R",
-      "U2",
-      "R'",
-      "U2",
-      "R",
-      "U'",
-      "R'",
-    ],
-    difficulty: "Advanced",
-    category: "Practice",
-  },
-
-  competition_scramble: {
-    name: "Competition Style",
-    description: "WCA-style random scramble sequence",
-    moves: [
-      "D2",
-      "F",
-      "U2",
-      "R2",
-      "D2",
-      "F",
-      "D2",
-      "L2",
-      "F'",
-      "R2",
-      "U2",
-      "R'",
-      "B",
-      "L",
-      "D'",
-      "U",
-      "L",
-      "D2",
-      "R'",
-      "U'",
-    ],
-    difficulty: "Expert",
-    category: "Competition",
-  },
-}
-
-export function applyScramblePattern(pattern: ScramblePattern, cubeSize: number): CubeState {
-  let cube = generateSolvedCube(cubeSize)
-
-  for (const move of pattern.moves) {
-    cube = applyMove(cube, move)
-  }
-
-  return cube
-}
-
-export function getPatternsByCategory(category: string): ScramblePattern[] {
-  return Object.values(scramblePatterns).filter((pattern) => pattern.category === category)
-}
-
-export function getPatternsByDifficulty(difficulty: string): ScramblePattern[] {
-  return Object.values(scramblePatterns).filter((pattern) => pattern.difficulty === difficulty)
+export const scramblePatterns: Record<string, ScramblePattern[]> = {
+  classic: [
+    {
+      name: "Superflip",
+      moves: "R U R' F R F' U2 R' U' R U R' F R2 U' R' U' R U R' F'",
+      difficulty: "Expert",
+      description: "All edges are flipped but in correct positions - the most famous cube pattern",
+    },
+    {
+      name: "Checkerboard",
+      moves: "M2 E2 S2",
+      difficulty: "Easy",
+      description: "Creates a checkerboard pattern on all faces",
+    },
+    {
+      name: "Cross Pattern",
+      moves: "F B R L U D",
+      difficulty: "Easy",
+      description: "Creates cross patterns on opposite faces",
+    },
+  ],
+  fun: [
+    {
+      name: "Cube in Cube",
+      moves: "F L F U' R U F2 L2 U' L' B D' B' L2 U",
+      difficulty: "Hard",
+      description: "Creates the illusion of a smaller cube inside the larger one",
+    },
+    {
+      name: "Flower Pattern",
+      moves: "R U R' F R F' U R U2 R' U2 R",
+      difficulty: "Medium",
+      description: "Creates flower-like patterns on multiple faces",
+    },
+    {
+      name: "Spiral",
+      moves: "R U R' U R U2 R' L' U' L U' L' U2 L",
+      difficulty: "Medium",
+      description: "Creates spiral patterns around the cube",
+    },
+    {
+      name: "Six Dots",
+      moves: "U D' R L' F B' U D'",
+      difficulty: "Easy",
+      description: "Creates dot patterns on all six faces",
+    },
+    {
+      name: "Stripes",
+      moves: "F U F R L' F D' F U F L R' F",
+      difficulty: "Medium",
+      description: "Creates striped patterns across faces",
+    },
+    {
+      name: "Tetris",
+      moves: "L R F B U D L R",
+      difficulty: "Easy",
+      description: "Creates Tetris-like block patterns",
+    },
+    {
+      name: "Gift Box",
+      moves: "F R U R' U' R U R' U' F'",
+      difficulty: "Medium",
+      description: "Makes the cube look like a wrapped gift box",
+    },
+  ],
+  practice: [
+    {
+      name: "Easy Scramble",
+      moves: "R U R' U' F U F'",
+      difficulty: "Easy",
+      description: "Simple scramble for beginners to practice solving",
+    },
+    {
+      name: "Medium Scramble",
+      moves: "R U2 R' D R U' R' D' R2 U R' U' R U' R'",
+      difficulty: "Medium",
+      description: "Moderate scramble for intermediate solvers",
+    },
+    {
+      name: "Hard Scramble",
+      moves: "R U R' F R F' U2 R' U' R U R' F R F' U R U2 R' U2 R U' R'",
+      difficulty: "Hard",
+      description: "Complex scramble for advanced practice",
+    },
+    {
+      name: "Competition Scramble",
+      moves: "D2 F U2 R2 D2 F D2 L2 F' R2 U2 R' B L D' U L D2 R' U'",
+      difficulty: "Expert",
+      description: "Official WCA-style competition scramble",
+    },
+  ],
+  complex: [
+    {
+      name: "Anaconda",
+      moves: "L U B' U' R L' B R' F B' D R D' F'",
+      difficulty: "Hard",
+      description: "Creates snake-like patterns winding around the cube",
+    },
+    {
+      name: "Python",
+      moves: "R U' R' U' F R F' U R U2 R' U2 R",
+      difficulty: "Hard",
+      description: "Another serpentine pattern with different characteristics",
+    },
+  ],
 }
