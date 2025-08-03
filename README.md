@@ -71,16 +71,13 @@ This project is a Rubik's Cube Solver designed for the **Design Dexterity Challe
 
 ## Demo & Screenshots
 
+<img width="1919" height="933" alt="Screenshot 2025-08-03 121147" src="https://github.com/user-attachments/assets/4e21abcf-f42e-4fab-bc73-dbcaab9260d1" />
 
 <img width="1919" height="933" alt="Screenshot 2025-08-03 121205" src="https://github.com/user-attachments/assets/6a19ea0d-ad7e-4d6f-a86a-60cb31b64672" />
 <img width="1918" height="932" alt="Screenshot 2025-08-03 121220" src="https://github.com/user-attachments/assets/73de0823-d052-4902-b43a-9cc765d1ba4c" />
 <img width="506" height="241" alt="Screenshot 2025-08-03 121234" src="https://github.com/user-attachments/assets/bf0345de-865e-4ce1-9eae-aeeecaba7d8b" />
 <img width="476" height="586" alt="Screenshot 2025-08-03 121250" src="https://github.com/user-attachments/assets/9a30bdf1-1a44-4671-a81c-e8cb47607c51" />
-<img width="1919" height="933" alt="Screenshot 2025-08-03 121147" src="https://github.com/user-attachments/assets/4e21abcf-f42e-4fab-bc73-dbcaab9260d1" />
 
-![Scrambled Cube Example](./screenshots/scrambled-cube.png)
-![Solving Animation](./screenshots/solving.gif)
-![Algorithm Comparison Chart](./screenshots/algorithm-comparison.png)
 
 ---
 
